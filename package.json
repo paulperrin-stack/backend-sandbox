@@ -1,0 +1,26 @@
+{
+  "name": "backend-sandbox",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulperrin-stack/backend-sandbox.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/paulperrin-stack/backend-sandbox/issues"
+  },
+  "homepage": "https://github.com/paulperrin-stack/backend-sandbox#readme",
+  "dependencies": {
+    "@prisma/client": "^6.0.0",
+    "express": "^5.2.1",
+    "prisma": "^6.0.0"
+  }
+}
