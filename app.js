@@ -20,6 +20,26 @@ app.get('/items', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /ITEMS/:ID
+
+app.get('/items/:id', async (req, res, next) => {
+  const id = parseInt(req.params.id, 10);
+
+  if (isNaN(id) || id < 1) {
+    return res.status(400).json({ error: '`id` must be a positive integer.' });
+  }
+
+  try {
+    const item = await prisma.item.findUnique({ where: { id } });
+
+    if (!item) {
+      return res.status(404).json({ error: `Item ${id} not found.` });
+    }
+
+    res.json(item);
+  } catch (err) { next(err); }
+});
+
 // POST /ITEMS
 
 app.post('/items', async (req, res, next) => {
@@ -33,6 +53,35 @@ app.post('/items', async (req, res, next) => {
     const item = await prisma.item.create({ data: { name: name.trim() } });
     res.status(201).json(item);
   } catch (err) { next(err); }
+});
+
+// PUT /ITEMS/:ID
+
+app.put('/items/:id', async (req, res, next) => {
+  const id = parseInt(req.params.id, 10);
+
+  if (isNaN(id) || id < 1) {
+    return res.status(400).json({ error: '`id` must be a positive integer.' });
+  }
+
+  const { name } = req.body;
+
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(404).json({ error: '`name` is required.' });
+  }
+
+  try {
+    const item = await prisma.item.update({
+      where: { id },
+      data: { name: name.trim() },
+    });
+    res.json(item);
+  } catch (err) {
+    if (err.code === 'P2025') {
+      return res.status(404).json({ error: `Item ${id} not found.` });
+    }
+    next(err);
+  }
 });
 
 // DELETE /ITEMS/:ID

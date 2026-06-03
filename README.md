@@ -35,3 +35,11 @@ Prisma's "record not found" error. With Prisma, calling delete on a non-existent
 - Why one PrismaClient instance?
 
 Each new PrismaClient() opens a connection pool — a set of persistent connections to Postgres. If you instantiated it per-route or per-request you'd open a new pool on every call and exhaust the database's connection limit fast. Node caches require() calls, so every file that does require('./db') gets the same instance back. One pool, shared across the whole app.
+
+- Why does findUnique check for null but delete uses P2025?
+
+Different Prisma methods, different behaviour. findUnique returns null when the record doesn't exist — so you check the return value yourself and return 404. delete and update throw P2025 instead of returning null — so you catch the error code and convert it to a 404. Same outcome, different mechanism depending on which method you called.
+
+- Why id < 1 in the validation check?
+
+Auto-incremented Postgres ids start at 1. An id of 0 or negative can never exist in the database, so there's no point making the query. More importantly, Number('') returns 0 and passes isInteger — so without the < 1 guard, an empty string id would reach the database. parseInt with a radix handles this cleanly: empty string becomes NaN, floats get truncated, and id < 1 rejects zero and negatives explicitly.
