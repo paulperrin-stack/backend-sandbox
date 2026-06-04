@@ -43,3 +43,19 @@ Different Prisma methods, different behaviour. findUnique returns null when the 
 - Why id < 1 in the validation check?
 
 Auto-incremented Postgres ids start at 1. An id of 0 or negative can never exist in the database, so there's no point making the query. More importantly, Number('') returns 0 and passes isInteger — so without the < 1 guard, an empty string id would reach the database. parseInt with a radix handles this cleanly: empty string becomes NaN, floats get truncated, and id < 1 rejects zero and negatives explicitly.
+
+- What does include do in Prisma?
+
+include tells Prisma to JOIN and return related records in the same query. Without it you get the author but no items — you'd have to make a second query. With include: { items: true }, Prisma fetches both in one round trip and nests the items array inside the author object.
+
+- What happens if you delete an author who still has items?
+
+Postgres throws a foreign key constraint error — you can't delete a parent row while child rows still reference it. Prisma surfaces this as a P2003 error. Without handling it you get a 500. The fix is either cascade deletes in the schema (onDelete: Cascade on the relation, so deleting an author deletes their items too), or check for existing items first and return a 409 Conflict.
+
+- Why is authorId required on Item, and why does that make migration harder?
+
+The relation requires every item to belong to an author. If you already have items in the database with no author, Postgres can't add a NOT NULL foreign key column — it has nothing to put in that column for existing rows. Fix: make it optional (authorId Int?) while migrating, or clear the items table first.
+
+- Why is the router/controller split worth it?
+
+app.js with 20 routes and 200 lines becomes unreadable fast. The router is a map — URLs to functions. The controller is logic — what actually happens. Keeping them separate means you can find, read, and change a handler without scrolling past unrelated routes. It also makes testing easier: you can import a controller function and test it directly without spinning up the server.

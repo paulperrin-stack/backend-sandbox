@@ -12,4 +12,13 @@ model Item {
   id          Int         @id @default(autoincrement())
   name        String
   createdAt   DateTime    @default(now())
+  author      Author      @relation(fields: [authorId], references: [id])
+  authorId    Int
+}
+
+model Author {
+  id          Int         @id @default(autoincrement())
+  name        String
+  createdAt   DateTime    @default(now())
+  items       Item[]
 }
