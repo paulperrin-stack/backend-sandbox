@@ -8,4 +8,4 @@ const prisma = {
     },
 };
 
-mdoule.exports = prisma;
+module.exports = prisma;

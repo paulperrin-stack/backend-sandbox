@@ -1,3 +1,5 @@
+jest.mock('../db');
+
 const prisma = require('../db');
 const { getAll, getOne, create, update, remove } = require('../controllers/item.controller');
 
