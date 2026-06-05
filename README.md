@@ -18,7 +18,7 @@ A connection string tells Prisma where your database is and how to authenticate.
 
 - What does migrate dev do?
 
-Three things in one command: write the SQL file, runs it against your database to create or alter the tables, then regenerates the Prisma client to match your updated schema. The SQL file get committed to version control so your team can replay the exact same migrations.
+Three things in one command: write the SQL file, runs it against your database to create or alter the tables, then regenerates the Prisma client to match your updated schema. The SQL file gets committed to version control so your team can replay the exact same migrations.
 
 - Why $disconnect()?
 
@@ -26,7 +26,7 @@ Prisma holds open a connection pool while it's running. In a server that's fine 
 
 - Why async on every route?
 
-Prisma queries return promises. async/await is how you wait for them. Without it you'd call prisma.item.findMany() and move on before the database responds - the route send nothing back. The try/catch matters too: if you don't catch a rejected promise and pass it to next(err). Express never sees the error and the request hangs.
+Prisma queries return promises. async/await is how you wait for them. Without it you'd call prisma.item.findMany() and move on before the database responds - the route sends nothing back. The try/catch matters too: if you don't catch a rejected promise and pass it to next(err), Express never sees the error and the request hangs.
 
 - What is error code P2025?
 
@@ -75,3 +75,15 @@ validateId parses the id once and writes it onto the request object as req.id. E
 - Why is middleware applied per route in the router rather than globally in app.js?
 
 Not every route needs both validators. GET /items needs neither. POST /items needs validateName but not validateId. DELETE /items/:id needs validateId but not validateName. Applying them per route means each handler gets exactly what it needs and nothing it doesn't.
+
+- Why centralise error handling?
+
+P2025 and P2003 were caught inline in every controller. If the mapping changes — say P2025 should return a different message — you'd update it in every catch block. In a central error handler you change it once. Controllers become pure database logic: query, respond, or next(err). Nothing else.
+
+- Why does getOne still handle its own 404 after centralising errors?
+
+findUnique returns null for a missing record — it doesn't throw. The error handler only fires when something calls next(err) with an actual error. Null is a value, not a throw, so there's nothing to catch and forward. getOne has to check the return value itself and send the 404 directly.
+
+- What is error code P2003?
+
+Prisma's foreign key constraint error. Thrown when you try to delete a parent record that still has child records referencing it — for example, deleting an author who still has items. The central error handler maps it to a 409 Conflict, which is the correct status: the request was valid but conflicts with the current state of the data.

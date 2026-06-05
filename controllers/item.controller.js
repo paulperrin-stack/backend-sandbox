@@ -1,4 +1,4 @@
-const primsa = require('../db');
+const prisma = require('../db');
 
 async function getAll(req, res, next) {
     try {
@@ -24,25 +24,19 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
     try {
-        const item = await prisma.item.udapte({
+        const item = await prisma.item.update({
             where: { id: req.id },
-            data: { name: req.body.name },
+            data:  { name: req.body.name },
         });
         res.json(item);
-    } catch (err) {
-        if (err.code === 'P2025') return res.status(404).json({ error: `Item ${req.is} not found.` });
-        next(err);
-    }
+    } catch (err) { next(err); }
 }
 
 async function remove(req, res, next) {
     try {
         const deleted = await prisma.item.delete({ where: { id: req.id } });
-        res.json({ deleted });
-    } catch (err) {
-        if (err.code === 'P2025') return res.status(404).json({ error: `Item ${req.id} not found.` });
-        next(err);
-    }
+        res.json({ deleted });
+    } catch (err) { next(err); }
 }
 
 module.exports = { getAll, getOne, create, update, remove };
