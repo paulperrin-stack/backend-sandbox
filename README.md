@@ -99,3 +99,15 @@ The relationship between tables is a database concern, not an application concer
 - What is the difference between onDelete: Cascade and onDelete: SetNull?
 
 Cascade deletes the child records when the parent is deleted. SetNull sets the foreign key column to null on the child records instead of deleting them — useful when the relation is optional and you want to keep the child records but disassociate them from the parent. SetNull requires the foreign key to be nullable (authorId Int?), otherwise Postgres will reject it.
+
+- What is config.js for?
+
+One place that reads all environment variables, validates they exist, and exports them. Without it, missing vars fail silently deep inside a route — you get a cryptic error at runtime instead of a clear message at startup. With it, the app exits immediately on boot with a list of exactly what's missing.
+
+- Why process.exit(1) and not throw?
+
+A thrown error at the top level might be caught somewhere, swallowed, or produce a confusing stack trace. process.exit(1) is unambiguous — the process stops, the exit code signals failure to whatever started it (a shell script, a deployment system, a process manager). It's the right tool for "this process cannot run".
+
+- Why include DATABASE_URL in the required list if Prisma reads it itself?
+
+Prisma reads DATABASE_URL lazily — only when the first query runs. If it's missing you get a Prisma connection error deep inside a route handler, not at startup. Including it in config.js means the app catches the missing var immediately on boot, before any request is ever made.

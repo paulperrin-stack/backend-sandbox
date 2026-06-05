@@ -1,15 +1,15 @@
-const express = require('express');
-const itemRoutes = require('./routes/item.router');
-const authorRoutes = require('./routes/author.router');
-const errorHandler = require('./middleware/error.handler')
+const express      = require('express');
+const { PORT }     = require('./config');
+const itemRouter   = require('./routes/item.router');
+const authorRouter = require('./routes/author.router');
+const errorHandler = require('./middleware/errorHandler');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.get('/', (req, res) => res.json({ message: 'Welcome to the Item API!' }));
-app.use('/items', itemRoutes);
-app.use('/authors', authorRoutes);
+app.get('/', (req, res) => res.json({ message: 'Welcome to the API!' }));
+app.use('/items',   itemRouter);
+app.use('/authors', authorRouter);
 
 app.use(errorHandler);
 
