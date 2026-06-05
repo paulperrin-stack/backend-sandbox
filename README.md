@@ -87,3 +87,15 @@ findUnique returns null for a missing record — it doesn't throw. The error han
 - What is error code P2003?
 
 Prisma's foreign key constraint error. Thrown when you try to delete a parent record that still has child records referencing it — for example, deleting an author who still has items. The central error handler maps it to a 409 Conflict, which is the correct status: the request was valid but conflicts with the current state of the data.
+
+- What does onDelete: Cascade do?
+
+Tells Postgres to automatically delete all child records when the parent is deleted. Without it, deleting an author with items throws a foreign key constraint error. With it, the database handles the deletion in one operation — no application code needed. The cascade happens at the database level, not in the controller.
+
+- Why is cascade a schema change and not a code change?
+
+The relationship between tables is a database concern, not an application concern. The application says "delete this author" — the database decides what happens to the related rows. Defining that behaviour in the schema keeps it in the right place and means it applies regardless of how the delete is triggered, whether through the API, a migration script, or directly in Postgres.
+
+- What is the difference between onDelete: Cascade and onDelete: SetNull?
+
+Cascade deletes the child records when the parent is deleted. SetNull sets the foreign key column to null on the child records instead of deleting them — useful when the relation is optional and you want to keep the child records but disassociate them from the parent. SetNull requires the foreign key to be nullable (authorId Int?), otherwise Postgres will reject it.
