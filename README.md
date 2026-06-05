@@ -59,3 +59,19 @@ The relation requires every item to belong to an author. If you already have ite
 - Why is the router/controller split worth it?
 
 app.js with 20 routes and 200 lines becomes unreadable fast. The router is a map — URLs to functions. The controller is logic — what actually happens. Keeping them separate means you can find, read, and change a handler without scrolling past unrelated routes. It also makes testing easier: you can import a controller function and test it directly without spinning up the server.
+
+- What is middleware?
+
+A function that sits between the request and the route handler. It runs before the controller, has access to req and res, and either sends a response itself (validation failure) or calls next() to pass control forward. Express runs middleware in the order it's registered — that's why the order matters.
+
+- Why extract validation into middleware?
+
+The name check and id parsing were copy-pasted into every controller function. If the rule changes — say you add a max length to name — you'd have to update it in every handler. In middleware you change it once. The controller becomes pure database logic with no validation noise mixed in.
+
+- What does req.id do?
+
+validateId parses the id once and writes it onto the request object as req.id. Every middleware and handler in the same request cycle shares the same req — so the controller can just read req.id directly without parsing again. Same idea for req.body.name: validateName trims it once, the controller uses it clean.
+
+- Why is middleware applied per route in the router rather than globally in app.js?
+
+Not every route needs both validators. GET /items needs neither. POST /items needs validateName but not validateId. DELETE /items/:id needs validateId but not validateName. Applying them per route means each handler gets exactly what it needs and nothing it doesn't.
