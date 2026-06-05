@@ -111,3 +111,23 @@ A thrown error at the top level might be caught somewhere, swallowed, or produce
 - Why include DATABASE_URL in the required list if Prisma reads it itself?
 
 Prisma reads DATABASE_URL lazily — only when the first query runs. If it's missing you get a Prisma connection error deep inside a route handler, not at startup. Including it in config.js means the app catches the missing var immediately on boot, before any request is ever made.
+
+- Why mock Prisma instead of using a real database in tests?
+
+A real database makes tests slow, stateful, and fragile — they depend on what's in the database, break if it's not running, and can interfere with each other. Mocking Prisma replaces the real calls with functions you control. Tests run in milliseconds, work anywhere, and each test starts clean.
+
+- Why does __mocks__/db.js sit next to db.js and not inside __tests__?
+
+Jest's manual mock convention: a __mocks__ folder next to a module automatically replaces that module in tests. If it were inside __tests__, Jest wouldn't find it automatically — you'd have to call jest.mock('../db') explicitly in every test file. Next to db.js, it just works.
+
+- What does mockReturnThis() do on the res mock?
+
+res.status(404).json(...) is a method chain — status() needs to return the same res object so json() can be called on it. mockReturnThis() makes the mock function return its own context (this), which is the res mock. Without it, status() returns undefined and the chain throws.
+
+- Why does the test pass req.id directly instead of req.params.id?
+
+validateId middleware runs before the controller in a real request and writes the parsed id onto req.id. The controller only reads req.id — it never touches req.params. So the test just needs to provide { id: 1 } in the right shape. Testing the controller in isolation means you don't need to simulate the full middleware chain.
+
+- Why call jest.clearAllMocks() in beforeEach?
+
+Mock functions accumulate call history and return values across tests. Without clearing them, a mockResolvedValue set in one test bleeds into the next — your second test might pass for the wrong reason, or fail because it's reading state left by the previous one. beforeEach ensures every test starts with a clean slate.
